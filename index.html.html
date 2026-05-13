@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Prioriteit Matrix</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f3ef;
+  --surface: #ffffff;
+  --surface2: #f0ede8;
+  --border: #e2ddd6;
+  --border2: #ccc8c0;
+  --text: #1a1814;
+  --text2: #6b6760;
+  --text3: #9e9b96;
+  --accent: #2d4a3e;
+  --accent2: #4a7c66;
+  --accent-light: #e8f0ec;
+  --warn: #8b4513;
+  --warn-light: #fdf0e8;
+  --radius: 10px;
+  --radius-lg: 16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
+
+/* Layout */
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.main{padding:2rem;max-width:900px}
+
+/* Sidebar */
+.brand{padding:1.5rem 1.5rem 1rem;border-bottom:1px solid var(--border)}
+.brand h1{font-size:16px;font-weight:600;letter-spacing:-0.02em;color:var(--text)}
+.brand p{font-size:12px;color:var(--text3);margin-top:2px}
+.nav{padding:1rem 0.75rem;flex:1}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:14px;color:var(--text2);transition:all .15s;border:none;background:none;width:100%;text-align:left;margin-bottom:2px}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--accent);color:#fff}
+.nav-icon{width:18px;height:18px;opacity:.7;flex-shrink:0}
+.nav-item.active .nav-icon{opacity:1}
+.nav-badge{margin-left:auto;background:var(--surface2);color:var(--text3);font-size:11px;padding:1px 7px;border-radius:20px;font-family:'DM Mono',monospace}
+.nav-item.active .nav-badge{background:rgba(255,255,255,.2);color:rgba(255,255,255,.8)}
+
+.participants-section{padding:1rem 0.75rem;border-top:1px solid var(--border)}
+.section-label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);padding:0 12px;margin-bottom:8px}
+.participant-add{display:flex;gap:6px;padding:0 0;margin-bottom:8px}
+.participant-add input{flex:1;padding:7px 10px;font-size:13px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif}
+.participant-add input:focus{outline:none;border-color:var(--accent2)}
+.participant-add button{padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text2);cursor:pointer;font-size:16px;line-height:1}
+.participant-add button:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.p-chip{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-radius:8px;font-size:13px;cursor:pointer;margin-bottom:3px;border:1px solid transparent;transition:all .15s;background:none;width:100%;text-align:left;color:var(--text2)}
+.p-chip:hover{background:var(--surface2)}
+.p-chip.active-p{background:var(--accent-light);color:var(--accent);border-color:rgba(45,74,62,.2);font-weight:500}
+.p-chip-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:0 2px;line-height:1}
+.p-chip-del:hover{color:#c0392b}
+
+/* Main content */
+.page{display:none}
+.page.active{display:block}
+.page-header{margin-bottom:1.5rem}
+.page-header h2{font-size:22px;font-weight:600;letter-spacing:-0.03em;color:var(--text)}
+.page-header p{font-size:14px;color:var(--text2);margin-top:4px}
+
+/* Add stelling */
+.add-row{display:flex;gap:8px;margin-bottom:1rem}
+.add-row input{flex:1;padding:10px 14px;font-size:14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif}
+.add-row input:focus{outline:none;border-color:var(--accent2);box-shadow:0 0 0 3px rgba(74,124,102,.1)}
+.add-row button{padding:10px 18px;border:none;border-radius:var(--radius);background:var(--accent);color:#fff;font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;font-weight:500;white-space:nowrap}
+.add-row button:hover{background:var(--accent2)}
+
+/* Stelling list */
+.stelling-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;transition:border-color .15s}
+.stelling-item:hover{border-color:var(--border2)}
+.stelling-num{font-family:'DM Mono',monospace;font-size:12px;color:var(--text3);width:20px;flex-shrink:0}
+.stelling-text{flex:1;font-size:14px;color:var(--text)}
+.stelling-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:4px;border-radius:6px}
+.stelling-del:hover{color:#c0392b;background:#fdf0ed}
+
+/* Vote cards */
+.vote-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:12px}
+.vote-card-header{font-size:14px;font-weight:500;color:var(--text);margin-bottom:14px;display:flex;gap:10px;align-items:flex-start}
+.vote-card-num{font-family:'DM Mono',monospace;font-size:12px;color:var(--text3);flex-shrink:0;margin-top:2px}
+.vote-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.vote-row:last-child{margin-bottom:0}
+.vote-label{font-size:12px;color:var(--text2);width:180px;flex-shrink:0}
+.btn-group{display:flex;gap:4px;flex-wrap:wrap}
+.opt-btn{padding:5px 11px;font-size:12px;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--bg);color:var(--text2);font-family:'DM Sans',sans-serif;transition:all .12s}
+.opt-btn:hover{border-color:var(--border2);color:var(--text)}
+.opt-btn.sel-imp{background:var(--accent);border-color:var(--accent);color:#fff}
+.opt-btn.sel-huidig{background:#2c5282;border-color:#2c5282;color:#fff}
+.opt-btn.sel-gewenst{background:var(--warn);border-color:var(--warn);color:#fff}
+
+/* No participant warning */
+.notice{background:var(--warn-light);border:1px solid #f5cba7;border-radius:var(--radius);padding:12px 16px;font-size:13px;color:var(--warn);margin-bottom:1rem}
+
+/* Matrix */
+.matrix-container{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem}
+#matrix-svg{width:100%;height:auto;display:block}
+.legend-wrap{margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem}
+.legend-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:8px}
+.legend-items{display:flex;flex-direction:column;gap:6px}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2)}
+.legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.legend-num{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);width:18px}
+
+.quadrant-labels{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.q-label{font-size:11px;padding:6px 10px;border-radius:6px;text-align:center}
+.q-tl{background:#fdf8f0;color:#8b5e3c;border:1px solid #f5e6d0}
+.q-tr{background:#f0faf4;color:#2d6a4f;border:1px solid #c8ebd5}
+.q-bl{background:#f8f8f8;color:#888;border:1px solid #e8e8e8}
+.q-br{background:#fff3f0;color:#c0392b;border:1px solid #fdc8be}
+
+/* Export */
+.export-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text2);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s}
+.export-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* Progress bar */
+.progress-bar{height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent2);border-radius:2px;transition:width .3s}
+
+/* Empty state */
+.empty{text-align:center;padding:3rem 1rem;color:var(--text3);font-size:14px}
+.empty svg{opacity:.3;margin-bottom:12px}
+
+/* Responsive */
+@media(max-width:700px){
+  .app{grid-template-columns:1fr}
+  .sidebar{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border)}
+  .vote-row{flex-direction:column;align-items:flex-start}
+  .vote-label{width:auto}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <h1>Team Matrix</h1>
+      <p>Prioriteit &amp; Effort sessie</p>
+    </div>
+    <nav class="nav">
+      <button class="nav-item active" onclick="showPage('stellingen')">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h12M4 10h12M4 14h7"/></svg>
+        Stellingen
+        <span class="nav-badge" id="badge-stellingen">0</span>
+      </button>
+      <button class="nav-item" onclick="showPage('stemmen')">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l3 3L22 4"/><circle cx="10" cy="10" r="7"/></svg>
+        Stemmen
+        <span class="nav-badge" id="badge-stemmen">0%</span>
+      </button>
+      <button class="nav-item" onclick="showPage('matrix')">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5" cy="14" r="2"/><circle cx="14" cy="6" r="2"/><circle cx="9" cy="10" r="2"/><path d="M3 17h14M3 3v14"/></svg>
+        Matrix
+      </button>
+    </nav>
+
+    <div class="participants-section">
+      <div class="section-label">Deelnemers</div>
+      <div class="participant-add">
+        <input id="new-p" placeholder="Naam toevoegen..." onkeydown="if(event.key==='Enter')addParticipant()">
+        <button onclick="addParticipant()">+</button>
+      </div>
+      <div id="p-list"></div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Stellingen -->
+    <div id="page-stellingen" class="page active">
+      <div class="page-header">
+        <h2>Stellingen</h2>
+        <p>Voer de onderwerpen in die jullie willen beoordelen in de sessie.</p>
+      </div>
+      <div class="add-row">
+        <input id="new-stelling" placeholder="Bijv. Samenwerking met de business verbeteren..." onkeydown="if(event.key==='Enter')addStelling()">
+        <button onclick="addStelling()">+ Toevoegen</button>
+      </div>
+      <div id="stelling-list"></div>
+    </div>
+
+    <!-- Stemmen -->
+    <div id="page-stemmen" class="page">
+      <div class="page-header">
+        <h2>Stemmen</h2>
+        <p>Selecteer een deelnemer links en stel de scores in per stelling.</p>
+      </div>
+      <div id="vote-notice"></div>
+      <div id="vote-list"></div>
+    </div>
+
+    <!-- Matrix -->
+    <div id="page-matrix" class="page">
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <h2>Prioriteit Matrix</h2>
+          <p>Gemiddelde scores van alle deelnemers.</p>
+        </div>
+        <button class="export-btn" onclick="exportCSV()">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 16v1a1 1 0 001 1h10a1 1 0 001-1v-1M7 10l3 3m0 0l3-3m-3 3V4"/></svg>
+          Export CSV
+        </button>
+      </div>
+      <div class="matrix-container">
+        <svg id="matrix-svg" viewBox="0 0 580 400" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="quadrant-labels">
+          <div class="q-label q-tl">⚠️ Hoge prio – weinig effort<br><small>Onderschat?</small></div>
+          <div class="q-label q-tr">✅ Hoge prio – veel effort<br><small>Goed bezig</small></div>
+          <div class="q-label q-bl">💤 Lage prio – weinig effort<br><small>Prima zo</small></div>
+          <div class="q-label q-br">🔄 Lage prio – veel effort<br><small>Heroverweeg</small></div>
+        </div>
+        <div class="legend-wrap" id="legend-wrap" style="display:none">
+          <div class="legend-title">Legenda — cirkelgrootte = gewenste effort</div>
+          <div class="legend-items" id="legend-items"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const COLORS=['#2d4a3e','#2c5282','#8b4513','#5a2d6e','#1a5276','#6e2d3e','#2d5a1a','#5c4a1a'];
+const IMPORTANTIE=['Niet belangrijk','Enigszins','Belangrijk','Heel belangrijk'];
+const HUIDIG=['Bijna geen','Weinig','Redelijk','Veel'];
+const GEWENST=['Weinig nodig','Redelijk','Veel','Heel veel'];
+
+let stellingen=[];
+let participants=[];
+let votes={};
+let activeP=null;
+
+function showPage(p){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach((btn,i)=>{
+    btn.classList.toggle('active',['stellingen','stemmen','matrix'][i]===p);
+  });
+  if(p==='matrix')drawMatrix();
+  if(p==='stemmen')renderVotes();
+  updateBadges();
+}
+
+function addStelling(){
+  const inp=document.getElementById('new-stelling');
+  const v=inp.value.trim();
+  if(!v)return;
+  stellingen.push(v);
+  inp.value='';
+  renderStellingen();
+  renderVotes();
+  updateBadges();
+}
+
+function deleteStelling(i){
+  stellingen.splice(i,1);
+  renderStellingen();
+  renderVotes();
+  updateBadges();
+}
+
+function renderStellingen(){
+  const el=document.getElementById('stelling-list');
+  if(!stellingen.length){
+    el.innerHTML='<div class="empty"><svg width="40" height="40" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1"><path d="M4 6h12M4 10h12M4 14h7"/></svg><br>Voeg stellingen toe om te beginnen</div>';
+    return;
+  }
+  el.innerHTML=stellingen.map((s,i)=>`
+    <div class="stelling-item">
+      <span class="stelling-num">${i+1}</span>
+      <span class="stelling-text">${escHtml(s)}</span>
+      <button class="stelling-del" onclick="deleteStelling(${i})" title="Verwijder">✕</button>
+    </div>`).join('');
+}
+
+function addParticipant(){
+  const inp=document.getElementById('new-p');
+  const v=inp.value.trim();
+  if(!v||participants.includes(v))return;
+  participants.push(v);
+  if(!votes[v])votes[v]={};
+  activeP=v;
+  inp.value='';
+  renderParticipants();
+  renderVotes();
+  updateBadges();
+}
+
+function removeParticipant(p,e){
+  e.stopPropagation();
+  participants=participants.filter(x=>x!==p);
+  delete votes[p];
+  if(activeP===p)activeP=participants[0]||null;
+  renderParticipants();
+  renderVotes();
+  updateBadges();
+}
+
+function selectP(p){
+  activeP=p;
+  renderParticipants();
+  renderVotes();
+}
+
+function renderParticipants(){
+  const el=document.getElementById('p-list');
+  el.innerHTML=participants.map(p=>`
+    <button class="p-chip${p===activeP?' active-p':''}" onclick="selectP('${escAttr(p)}')">
+      ${escHtml(p)}
+      <span class="p-chip-del" onclick="removeParticipant('${escAttr(p)}',event)">✕</span>
+    </button>`).join('');
+}
+
+function renderVotes(){
+  const notice=document.getElementById('vote-notice');
+  const el=document.getElementById('vote-list');
+  if(!activeP){
+    notice.innerHTML='<div class="notice">Voeg eerst een deelnemer toe via de zijbalk.</div>';
+    el.innerHTML='';return;
+  }
+  notice.innerHTML='';
+  if(!stellingen.length){
+    el.innerHTML='<div class="empty">Geen stellingen. Ga naar het tabblad Stellingen.</div>';return;
+  }
+  if(!votes[activeP])votes[activeP]={};
+  el.innerHTML=stellingen.map((s,i)=>{
+    const v=votes[activeP][i]||{imp:null,huidig:null,gewenst:null};
+    const filled=[v.imp,v.huidig,v.gewenst].filter(x=>x!==null).length;
+    return`<div class="vote-card">
+      <div class="vote-card-header"><span class="vote-card-num">${i+1}</span>${escHtml(s)}</div>
+      <div class="vote-row">
+        <span class="vote-label">Hoe belangrijk?</span>
+        <div class="btn-group">${IMPORTANTIE.map((l,j)=>`<button class="opt-btn${v.imp===j?' sel-imp':''}" onclick="setVote(${i},'imp',${j})">${l}</button>`).join('')}</div>
+      </div>
+      <div class="vote-row">
+        <span class="vote-label">Effort nu?</span>
+        <div class="btn-group">${HUIDIG.map((l,j)=>`<button class="opt-btn${v.huidig===j?' sel-huidig':''}" onclick="setVote(${i},'huidig',${j})">${l}</button>`).join('')}</div>
+      </div>
+      <div class="vote-row">
+        <span class="vote-label">Effort gewenst?</span>
+        <div class="btn-group">${GEWENST.map((l,j)=>`<button class="opt-btn${v.gewenst===j?' sel-gewenst':''}" onclick="setVote(${i},'gewenst',${j})">${l}</button>`).join('')}</div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${Math.round(filled/3*100)}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function setVote(si,dim,val){
+  if(!activeP)return;
+  if(!votes[activeP])votes[activeP]={};
+  if(!votes[activeP][si])votes[activeP][si]={imp:null,huidig:null,gewenst:null};
+  votes[activeP][si][dim]=val;
+  renderVotes();
+  updateBadges();
+}
+
+function avg(arr){const f=arr.filter(x=>x!==null&&x!==undefined);return f.length?f.reduce((a,b)=>a+b,0)/f.length:null}
+
+function getAvgScores(){
+  return stellingen.map((s,i)=>{
+    const imps=participants.map(p=>votes[p]&&votes[p][i]!=null?votes[p][i].imp:null);
+    const huidigs=participants.map(p=>votes[p]&&votes[p][i]!=null?votes[p][i].huidig:null);
+    const gewensteds=participants.map(p=>votes[p]&&votes[p][i]!=null?votes[p][i].gewenst:null);
+    return{label:s,imp:avg(imps),huidig:avg(huidigs),gewenst:avg(gewensteds)};
+  }).filter(d=>d.imp!==null&&d.huidig!==null);
+}
+
+function drawMatrix(){
+  const svg=document.getElementById('matrix-svg');
+  const data=getAvgScores();
+  const W=580,H=400,ml=70,mr=24,mt=20,mb=60;
+  const pw=W-ml-mr,ph=H-mt-mb;
+  svg.innerHTML='';
+
+  function el(tag,attrs,txt){
+    const e=document.createElementNS('http://www.w3.org/2000/svg',tag);
+    for(const[k,v] of Object.entries(attrs))e.setAttribute(k,v);
+    if(txt!==undefined)e.textContent=txt;
+    return e;
+  }
+
+  // Quadrant fills
+  const qColors=[['rgba(253,248,240,.8)','rgba(240,250,244,.8)'],['rgba(248,248,248,.5)','rgba(255,243,240,.8)']];
+  for(let xi=0;xi<2;xi++) for(let yi=0;yi<2;yi++){
+    svg.appendChild(el('rect',{x:ml+xi*(pw/2),y:mt+yi*(ph/2),width:pw/2,height:ph/2,fill:qColors[yi][xi]}));
+  }
+
+  // Grid lines
+  for(let i=1;i<=3;i++){
+    const x=ml+i*(pw/3);
+    svg.appendChild(el('line',{x1:x,y1:mt,x2:x,y2:mt+ph,stroke:'rgba(0,0,0,.06)','stroke-width':'1'}));
+    const y=mt+ph-i*(ph/3);
+    svg.appendChild(el('line',{x1:ml,y1:y,x2:ml+pw,y2:y,stroke:'rgba(0,0,0,.06)','stroke-width':'1'}));
+  }
+  // Center lines
+  svg.appendChild(el('line',{x1:ml+pw/2,y1:mt,x2:ml+pw/2,y2:mt+ph,stroke:'rgba(0,0,0,.12)','stroke-width':'1','stroke-dasharray':'4 3'}));
+  svg.appendChild(el('line',{x1:ml,y1:mt+ph/2,x2:ml+pw,y2:mt+ph/2,stroke:'rgba(0,0,0,.12)','stroke-width':'1','stroke-dasharray':'4 3'}));
+
+  // Border
+  svg.appendChild(el('rect',{x:ml,y:mt,width:pw,height:ph,fill:'none',stroke:'rgba(0,0,0,.12)','stroke-width':'1'}));
+
+  // Axis labels x
+  HUIDIG.forEach((l,i)=>{
+    const x=ml+(i+0.5)*(pw/4);
+    svg.appendChild(el('text',{x,y:mt+ph+16,fill:'#888','font-size':'11','text-anchor':'middle','font-family':'DM Sans,sans-serif'},l));
+  });
+  // Axis labels y
+  IMPORTANTIE.forEach((l,i)=>{
+    const y=mt+ph-(i+0.5)*(ph/4);
+    svg.appendChild(el('text',{x:ml-6,y:y+4,fill:'#888','font-size':'11','text-anchor':'end','font-family':'DM Sans,sans-serif'},l));
+  });
+
+  // Axis titles
+  svg.appendChild(el('text',{x:ml+pw/2,y:H-4,fill:'#555','font-size':'12','text-anchor':'middle','font-family':'DM Sans,sans-serif','font-weight':'500'},'Huidige effort →'));
+  const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.setAttribute('transform',`translate(${ml-50},${mt+ph/2}) rotate(-90)`);
+  g.appendChild(el('text',{x:0,y:0,fill:'#555','font-size':'12','text-anchor':'middle','font-family':'DM Sans,sans-serif','font-weight':'500'},'Prioriteit (belang) →'));
+  svg.appendChild(g);
+
+  if(!data.length){
+    svg.appendChild(el('text',{x:ml+pw/2,y:mt+ph/2,fill:'#aaa','font-size':'13','text-anchor':'middle','font-family':'DM Sans,sans-serif'},'Nog geen scores — ga naar Stemmen'));
+    document.getElementById('legend-wrap').style.display='none';
+    return;
+  }
+
+  // Points
+  data.forEach((d,i)=>{
+    const x=ml+(d.huidig/3)*pw;
+    const y=mt+ph-(d.imp/3)*ph;
+    const r=d.gewenst!==null?7+d.gewenst*3.5:12;
+    const c=COLORS[i%COLORS.length];
+    const circle=el('circle',{cx:x,cy:y,r:r,fill:c,opacity:'0.85',stroke:'white','stroke-width':'2'});
+    svg.appendChild(circle);
+    const lbl=el('text',{x:x,y:y+4,fill:'#fff','font-size':'11','text-anchor':'middle','font-family':'DM Mono,monospace','font-weight':'500'},(i+1).toString());
+    svg.appendChild(lbl);
+  });
+
+  // Legend
+  const legItems=document.getElementById('legend-items');
+  legItems.innerHTML=data.map((d,i)=>`
+    <div class="legend-item">
+      <span class="legend-dot" style="background:${COLORS[i%COLORS.length]}"></span>
+      <span class="legend-num">${i+1}.</span>
+      <span>${escHtml(d.label)}</span>
+    </div>`).join('');
+  document.getElementById('legend-wrap').style.display='block';
+}
+
+function updateBadges(){
+  document.getElementById('badge-stellingen').textContent=stellingen.length;
+  // Completion percentage
+  let total=stellingen.length*participants.length*3;
+  let filled=0;
+  participants.forEach(p=>{
+    stellingen.forEach((_,i)=>{
+      if(votes[p]&&votes[p][i]){
+        const v=votes[p][i];
+        if(v.imp!==null)filled++;
+        if(v.huidig!==null)filled++;
+        if(v.gewenst!==null)filled++;
+      }
+    });
+  });
+  document.getElementById('badge-stemmen').textContent=total?Math.round(filled/total*100)+'%':'0%';
+}
+
+function exportCSV(){
+  const data=getAvgScores();
+  if(!data.length){alert('Geen scores om te exporteren.');return}
+  let csv='Stelling,Gemiddeld belang (0-3),Huidige effort (0-3),Gewenste effort (0-3)\n';
+  data.forEach(d=>{
+    csv+=`"${d.label.replace(/"/g,'""')}",${d.imp!==null?d.imp.toFixed(2):''},${d.huidig!==null?d.huidig.toFixed(2):''},${d.gewenst!==null?d.gewenst.toFixed(2):''}\n`;
+  });
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='team-matrix-resultaten.csv';
+  a.click();
+}
+
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function escAttr(s){return s.replace(/'/g,"\\'")}
+
+// Default stellingen
+['Samenwerking met de business','Technische documentatie','Kennisdeling binnen het team','Klantfeedback verwerken','Automatisering van processen'].forEach(s=>stellingen.push(s));
+renderStellingen();
+updateBadges();
+</script>
+</body>
+</html>
